@@ -53,6 +53,9 @@ type
     Utilities1: TMenuItem;
     DEleteAllfilerecordsforavolume1: TMenuItem;
     SaveDialog2: TSaveDialog;
+    NewMediaCatalog1: TMenuItem;
+    N2: TMenuItem;
+    ADOXCatalog1: TADOXCatalog;
     procedure Exit1Click(Sender: TObject);
     procedure BrowseMediaCatalog1Click(Sender: TObject);
     procedure BrowseFiles1Click(Sender: TObject);
@@ -72,6 +75,7 @@ type
     procedure CloseMediaCatalog1Click(Sender: TObject);
     procedure DEleteAllfilerecordsforavolume1Click(Sender: TObject);
     procedure SaveDialog2TypeChange(Sender: TObject);
+    procedure NewMediaCatalog1Click(Sender: TObject);
   private
     fDatabaseIsOpen: boolean;
     fErrCount: integer;
@@ -106,6 +110,12 @@ type
     function GetLocationsTable: TLocationsTable;
     function TempFileInfoTable: TFileInfoTable;
     function TheVolumeInfoForm: TfrmVolumeInfo;
+//  function CopyTables(SrcDBName, DstDBName: string; var VolumeRecs,
+//    LocationRecs, FileInfoRecs: integer): boolean;
+    procedure CreateDatabase(var FileName: string; DBVersion: TDBVersion);
+//  procedure SaveMediaCatalogAs1Click(Sender: TObject);
+    function GetNewMediaCatalogName(var aFileName: string;
+      var DBVersion: TDBVersion): boolean;
   protected
     procedure WMBuildTreeView(Var Message: TMessage); message WM_BuildTreeView;
     { Private declarations }
@@ -1113,6 +1123,201 @@ begin
   result := fLocationsTable;
 end;
 
+procedure TfrmMediaCatalog.CreateDatabase(var FileName: string; DBVersion: TDBVersion);
+var
+  ConnectionString, cs: string;
+  Connection: TADOConnection;
+begin { TfrmMediaCatalog.CreateDatabase }
+  case DBVersion of
+    dv_Access2000:
+      begin
+        FileName         := ForceExtension(FileName, ACCESS_2000_EXT);
+        ConnectionString := Format(ACCESS_2000_CONNECTION_STRING, [ACCESS_2000_PROVIDER, FileName]);
+      end;
+    dv_Access2007:
+      begin
+        FileName         := ForceExtension(FileName, ACCESS_2007_EXT);
+        ConnectionString := Format(ACCESS_2007_CONNECTION_STRING, [ACCESS_2007_PROVIDER, FileName]);
+      end;
+  end;
+
+  ADOXCatalog1.Create1(ConnectionString);
+  Connection := MyConnection(FileName);
+  ADOCommand1.Connection := Connection;
+  
+//  ADOConnection1.ConnectionString := ConnectionString;
+//  ADOConnection1.LoginPrompt      := false;
+//  ADOCommand1.Connection          := ADOConnection1;
+//  ADOConnection1.connection := Connection;
+
+  cs := 'CREATE TABLE FileInfo (' +
+         'ID COUNTER,' +
+         'Media_ID INT,' +
+         'ParentFolder_ID INT,' +
+         'ShortFileName TEXT(16),' +
+         'LongFileName MEMO,' +
+         'DateTimeModified DATETIME,' +
+         'FileSize FLOAT,' +
+         'IsAFolder YESNO,' +
+         'ThisFolders_ID INT)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX ID ' +
+        'ON FileInfo (ID) WITH PRIMARY';
+
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX FileName ' +
+        'ON FileInfo (ShortFileName)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX Media_ID ' +
+        'ON FileInfo (Media_ID)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX FullIndex ' +
+        'ON FileInfo (Media_ID,ParentFolder_ID,ShortFileName)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX ParentFolder_ID ' +
+        'ON FileInfo (ParentFolder_ID)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  cs := 'CREATE TABLE Volumes (' +
+         'Media_ID COUNTER,' +
+         '[Location ID] INT,' +
+         '[Volume Label] TEXT(100),' +
+         'PUBLISHER TEXT(25),' +
+         '[KEY] MEMO,' +
+         'COMMENT MEMO,' +
+         'Media TEXT(1),' +
+         'DateAdded DATETIME,' +
+         'DateUpdated DATETIME,' +
+         '[Volume Serial Number] TEXT(10),' +
+         '[Volume Short Name] TEXT(16),' +
+         '[Volume Date] DATETIME,' +
+         'LocationVerified YESNO' +
+         ')';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  cs := 'CREATE TABLE Lookups (' +
+         'ID COUNTER,' +
+         'LookupCategory TEXT(3),' +
+         'LookupName TEXT(30),' +
+         'LookupValue MEMO)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE TABLE Help (' +
+        'ID Counter,' +
+        'LookupCategory TEXT(3),' +
+        'LookupName TEXT(30),' +
+        'LookupValue MEMO)';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX [LookupName] ' +
+        'ON Lookups ([LookupName]) WITH PRIMARY';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX [Media_ID] ' +
+        'ON Volumes ([Media_ID]) WITH PRIMARY';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX CDLabel ' +
+        'ON Volumes ([Volume Label])';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX [Location ID] ' +
+        'ON Volumes ([Location ID])';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX [LocationAndLabel] ' +
+        'ON Volumes ([Location ID],[Volume Label])';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  cs := 'CREATE TABLE Locations (' +
+         'ID COUNTER,' +
+         '[Location Name] TEXT(23),' +
+         '[Location Type] TEXT(10)' +
+         ')';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX PrimaryKey ' +
+        'ON Locations (ID) WITH PRIMARY';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  CS := 'CREATE INDEX [Location Name] ' +
+        'ON Locations ([Location Name])';
+  ADOCommand1.CommandText := cs;
+  ADOCommand1.Execute;
+
+  Connection.Close;
+end;  { TfrmMediaCatalog.CreateDatabase }
+
+function TfrmMediaCatalog.GetNewMediaCatalogName(var aFileName: string; var DBVersion: TDBVersion): boolean;
+var
+  OK: boolean;
+begin
+  result := true;
+  with SaveDialog2 do
+    begin
+      FileName := aFileName;
+      InitialDir := ExtractFilePath(aFileName);
+      case DBVersion of
+        dv_Access2000: FilterIndex := 1;
+        dv_Access2007: Filterindex := 2;
+      end;
+      if Execute then
+        begin
+          if FileExists(FileName) then
+            begin
+              OK := YesFmt('The file %s already exists. Do you want to overwrite it? ', [FileName]);
+              if OK then
+                begin
+                  OK := DeleteFile(FileName);
+                  if not OK then
+                    begin
+                      AlertFmt('Unable to delete file %s', [FileName]);
+                      exit;
+                    end;
+                end;
+            end
+          else
+            OK := true;
+
+          if OK then
+            begin
+              aFileName := FileName;
+              case FilterIndex of
+                1: DBVersion := dv_Access2000;
+                2: DBVersion := dv_Access2007;
+                else
+                  DBVersion := dv_Access2007;
+              end;
+            end
+          else
+            result := false;
+        end
+      else
+        result := false;
+    end;
+end;
+
 procedure TfrmMediaCatalog.Settings1Click(Sender: TObject);
 begin
   if not Assigned(frmMediaSettings) then
@@ -1359,5 +1564,148 @@ begin
       end;
     end;
 end;
+
+procedure TfrmMediaCatalog.NewMediaCatalog1Click(Sender: TObject);
+var
+  aFileName: string;
+  DBVersion: TDBVersion;
+begin
+  DBVersion  := dv_Access2007;
+  aFileName  := 'c:\temp\MediaCatalog.' + ACCESS_2007_EXT;
+
+  if GetNewMediaCatalogName(aFileName, DBVersion) then
+    try
+      CreateDatabase(aFileName, DBVersion);
+      lblStatus.Caption := Format('Created "%s"', [aFileName]);
+    except
+      on e:Exception do
+        ErrorFmt('Exception while attempting to create "%s"', [aFileName]);
+    end;
+end;
+
+(*
+function TfrmMediaCatalog.CopyTables(SrcDBName, DstDBName: string;
+                                     var VolumeRecs, LocationRecs, FileInfoRecs: integer): boolean;
+
+  function CopyTable(aTableName: string; RecsAdded: integer): boolean;
+  var
+    SrcTable, DstTable: TADOTable;
+    i: integer;
+
+
+    function OpenATable(FileName: string): TADOTable;
+    var
+      Connection: TADOConnection;
+    begin
+      Connection       := MyConnection(FileName);
+      result           := TADOTable.Create(self);
+      result.Connection := Connection;
+      result.TableName := aTableName;
+    end;
+
+  begin { CopyTable }
+    RecsAdded := 0;
+    lblStatus.Caption := Format('Opening %s', [aTableName]);
+    Application.ProcessMessages;
+    
+    try
+      SrcTable           := OpenATable(SrcDBName);
+      SrcTable.Active    := true;
+
+      DstTable           := OpenATable(DstDBName);
+      DstTable.Active    := true;
+      try
+        SrcTable.First;
+        while not SrcTable.Eof do
+          begin
+            DstTable.Append;
+            for i := 0 to SrcTable.Fields.Count-1 do
+              if not (SrcTable.Fields[i].DataType in [ftAutoInc]) then
+                DstTable.Fields[i].AsVariant := SrcTable.Fields[i].AsVariant;
+            DstTable.Post;
+            SrcTable.Next;
+            inc(RecsAdded);
+            MediaSettings.FileInfoRecs := MediaSettings.FileInfoRecs + 1;
+            if (RecsAdded mod 100) = 0 then
+              begin
+                lblStatus.Caption := Format('Processing %s. %0.n/%0.n records added',
+                                            [aTableName, RecsAdded*1.0, MediaSettings.FileInfoRecs*1.0]);
+                Application.ProcessMessages;
+              end;
+          end;
+        result := true;
+
+      finally
+        SrcTable.Active := false;
+        SrcTable.Free;
+        DstTable.Active := false;
+        DstTable.Free;
+      end;
+    except
+      on e:exception do
+        begin
+          ErrorFmt('Exception raised while copying table "%s" at record count = %d',
+                    [aTableName, RecsAdded]);
+          result := false;
+        end;
+    end;
+  end;  { CopyTable }
+
+begin{ TfrmMediaCatalog.CopyTables }
+  result := true;
+
+  VolumeRecs   := 0;
+  LocationRecs := 0;
+  FileInfoRecs := 0;
+
+  if not CopyTable(VOLUMES_TABLE_NAME, VolumeRecs) then
+    begin
+      result := false;
+      exit;
+    end;
+
+  if not CopyTable(LOCATIONS_TABLE_NAME, LocationRecs) then
+    begin
+      result := false;
+      Exit;
+    end;
+
+  if not CopyTable(FILEINFO_TABLE_NAME, FileInfoRecs) then
+    begin
+      result := false;
+      Exit;
+    end;
+end;  { TfrmMediaCatalog.CopyTables }
+*)
+
+(*
+procedure TfrmMediaCatalog.SaveMediaCatalogAs1Click(Sender: TObject);
+var
+  aFileName: string;
+  DBVersion: TDBVersion;
+  var VolumeRecs, LocationRecs, FileInfoRecs: integer;
+begin
+  DBVersion  := dv_Access2007;
+  aFileName  := 'c:\temp\MediaCatalog.' + ACCESS_2007_EXT;
+
+  if GetNewMediaCatalogName(aFileName, DBVersion) then
+    begin
+      CreateDatabase(aFileName, DBVersion);
+
+      if CopyTables(MediaSettings.DBFilePathName, aFileName,
+                    VolumeRecs, LocationRecs, FileInfoRecs) then
+        begin
+          AlertFmt('Sucessfully copied tables from "%s" to "%s"'+#13#10+
+                   '(VolumeRecs=%0.n, LocationRecs=%0.n, FileInfoRecs=%0.n)',
+                   [MediaSettings.DBFilePathName, aFileName,
+                    VolumeRecs, LocationRecs, FileInfoRecs]);
+          if not Empty(gSettingsFileName) then
+            MediaSettings.SaveToFile(gSettingsFileName);
+        end
+      else
+        AlertFmt('FAILED: Copy tables from "%s" to "%s"', [MediaSettings.DBFilePathName, aFileName]);
+    end;
+end;
+*)
 
 end.

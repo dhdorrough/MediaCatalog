@@ -9,7 +9,6 @@ inherited frmVolumesBrowser: TfrmVolumesBrowser
   end
   inherited DBNavigator1: TDBNavigator
     Hints.Strings = ()
-    BeforeAction = DBNavigator1BeforeAction
   end
   inherited MainMenu1: TMainMenu
     inherited Navigate1: TMenuItem
@@ -58,6 +57,7 @@ inherited frmVolumesBrowser: TfrmVolumesBrowser
       Caption = 'Reports'
       object ListSelectedRecords1: TMenuItem
         Caption = 'List Selected Records...'
+        Enabled = False
         OnClick = ListSelectedRecords1Click
       end
     end

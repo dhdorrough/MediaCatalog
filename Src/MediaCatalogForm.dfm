@@ -63,6 +63,13 @@ object frmMediaCatalog: TfrmMediaCatalog
       object OpenMediaCatalog1: TMenuItem
         Caption = '-'
       end
+      object NewMediaCatalog1: TMenuItem
+        Caption = 'New Media Catalog...'
+        OnClick = NewMediaCatalog1Click
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
       object ScanVolume2: TMenuItem
         Caption = 'Scan CD/DVD/HD Volume/Folder...'
         OnClick = ScanVolume2Click
@@ -157,5 +164,11 @@ object frmMediaCatalog: TfrmMediaCatalog
     OnTypeChange = SaveDialog2TypeChange
     Left = 528
     Top = 72
+  end
+  object ADOXCatalog1: TADOXCatalog
+    AutoConnect = False
+    ConnectKind = ckRunningOrNew
+    Left = 544
+    Top = 128
   end
 end

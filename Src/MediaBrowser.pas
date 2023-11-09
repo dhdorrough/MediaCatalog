@@ -33,10 +33,10 @@ type
     procedure ListSelectedRecords1Click(Sender: TObject);
     procedure VolumeDate1Click(Sender: TObject);
     procedure rECnO1Click(Sender: TObject);
-    procedure DBNavigator1BeforeAction(Sender: TObject;
-      Button: TNavigateBtn);
-  private
-    function TheVolumeInfoForm: TfrmVolumeInfo;
+//  procedure DBNavigator1BeforeAction(Sender: TObject;
+//    Button: TNavigateBtn);
+//private
+//    function TheVolumeInfoForm: TfrmVolumeInfo;
     { Private declarations }
   public
     { Public declarations }
@@ -148,9 +148,11 @@ begin
 end;
 
 procedure TfrmVolumesBrowser.ListSelectedRecords1Click(Sender: TObject);
+(*
 var
   SavedRecNo: integer;
   SavedIndexName: string;
+*)
 begin
   inherited;
 (*
@@ -186,6 +188,7 @@ begin
   (DataSet as TVolumesTable).IndexName := '';
 end;
 
+(*
 procedure TfrmVolumesBrowser.DBNavigator1BeforeAction(Sender: TObject;
   Button: TNavigateBtn);
 begin
@@ -224,13 +227,16 @@ begin
       inherited;
   end
 end;
+*)
 
+(*
 function TfrmVolumesBrowser.TheVolumeInfoForm: TfrmVolumeInfo;
 begin
   if not Assigned(frmVolumeInfo) then
     frmVolumeInfo := TfrmVolumeInfo.Create(self);
   result := frmVolumeInfo;
 end;
+*)
 
 
 end.
