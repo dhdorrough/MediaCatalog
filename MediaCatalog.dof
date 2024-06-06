@@ -100,11 +100,11 @@ Conditionals=
 DebugSourceDirs=
 UsePackages=0
 [Parameters]
-RunParams=
+RunParams="F:\NDAS-I\Shared Programs\Media Catalog\MediaCatalog.ini"
 HostApplication=
 Launcher=
 UseLauncher=0
-DebugCWD=
+DebugCWD=F:\NDAS-I\Shared Programs\Media Catalog
 [Language]
 ActiveLang=
 ProjectLang=

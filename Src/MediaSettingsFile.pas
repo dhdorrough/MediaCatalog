@@ -32,6 +32,7 @@ type
     function GetIncludeAllExtensions: boolean;
     function GetLogFilePathName: string;
     procedure SetLogFilePathName(const Value: string);
+    function GetIncludedExtensions: string;
   public
     property IncludeAllExtensions: boolean
              read GetIncludeAllExtensions;
@@ -59,7 +60,7 @@ type
              read GetVolumeLocation
              write SetVolumeLocation;
     property IncludedExtensions: string
-             read fIncludedExtensions
+             read GetIncludedExtensions
              write fIncludedExtensions;
     property FolderToBeScanned: string
              read fFolderToBeScanned
@@ -129,7 +130,7 @@ end;
 function TMediaSettingsFile.GetDBFilePathName: string;
 begin
   if Empty(fDBFilePathName) then
-    result := 'MediaCatalog.mdb'  // place holder- replace
+    result := 'MediaCatalog.*'  // place holder- replace
   else
     result := fDBFilePathName;
 end;
@@ -137,6 +138,11 @@ end;
 function TMediaSettingsFile.GetIncludeAllExtensions: boolean;
 begin
   Result := Empty(IncludedExtensions);
+end;
+
+function TMediaSettingsFile.GetIncludedExtensions: string;
+begin
+  Result := fIncludedExtensions;
 end;
 
 function TMediaSettingsFile.GetLogFilePathName: string;

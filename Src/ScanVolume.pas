@@ -70,13 +70,16 @@ constructor TfrmScanVolume.Create(aOwner: TComponent);
 begin
   inherited;
 
+(*
   if not Empty(MediaSettings.IncludedExtensions) then
     mmoExtensions.Text := MediaSettings.IncludedExtensions
   else
     mmoExtensions.Text := SOURCE_EXTENSIONS;
+*)
+//mmoExtensions.Text := 'All';  // default to all
 
-  if MediaSettings.IncludeAllExtensions then
-    cbExtensions.ItemIndex := 0;
+//if MediaSettings.IncludeAllExtensions then
+    cbExtensions.ItemIndex := 0;  // default to all extensions
   leComputerName.Text            := ComputerName;
   leFolderToBeScanned.Text       := MediaSettings.FolderToBeScanned;
 

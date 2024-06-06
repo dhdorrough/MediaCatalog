@@ -238,8 +238,6 @@ var
   procedure ReadLine;
   begin
     ReadLn(InFile, Line);  Inc(fLineCount); Inc(fLineWithinFile);
-    if Pos('Burmer', Line) > 0 then
-      Line := Line; // a nice place for a breakpoint
     if ((fLineCount mod 100) = 0) or
        ((fFilesProcessed mod 100) = 0) or
        (MilliSecondsBetween(Now, fLastReadTime) > 1000) then
@@ -1082,8 +1080,8 @@ var
   FilePath: string;
 begin
   CloseFiles;
-  FilePath := MediaSettings.DBFilePathName;
-  if BrowseForFile('Locate MediaCatalog.ACCDB', FilePath, '*', MediaCatalogFilters) then // ought to convert to .ACCDB
+  FilePath := ForceExtension(MediaSettings.DBFilePathName, '*');
+  if BrowseForFile('Locate MediaCatalog.*', FilePath, '*', MediaCatalogFilters) then // ought to convert to .ACCDB
     begin
       fDatabaseIsOpen      := true;
       MediaSettings.DBFilePathName := FilePath;
